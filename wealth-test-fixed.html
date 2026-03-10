@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命中财富局 - 挖掘你的核心搞钱天赋</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        
+        .transition-colors {
+            transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .shadow-xl {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // --- 数据定义 ---
+        
+        const OPTIONS = [
+            { text: '非常符合', score: 5 },
+            { text: '很符合', score: 4 },
+            { text: '部分符合', score: 3 },
+            { text: '不太符合', score: 2 },
+            { text: '完全不符合', score: 1 },
+        ];
+
+        const QUESTIONS = [
+            // 资源整合型 (0-4)
+            "参加行业峰会时，我更关注能认识哪些关键人物并与之建立连接，而不是单向听取枯燥的专业报告。",
+            "当朋友或客户遇到难题时，我通常能迅速在脑海中检索出可以帮到他的人脉，并乐于牵线搭桥。",
+            "我认为促成多方利益绑定的“组局”（如撮合资本与项目），比自己单打独斗完成一个具体任务更有成就感。",
+            "在商业谈判中，我极度擅长捕捉对方的情感弱点和隐藏诉求，从而达成双赢，而不是死磕条款细节。",
+            "我手机里存有大量不同行业高净值人群或从业者的联系方式，并且我会定期有意识地“送人情”以维护这些弱关系。",
+            // 技术深耕型 (5-9)
+            "面对一项高薪新任务，我更倾向于埋头苦干钻研其底层技术或核心专业知识，而不是四处求人外包。",
+            "我对“职业护城河”的理解是拥有某项极具壁垒的硬核技能，而不是拥有多少虚无缥缈的社交人脉。",
+            "在工作中，我经常因为过于专注攻克某个专业技术难题，而进入“心流”状态，忽略了外界的时间流逝。",
+            "我认为靠出卖极度专业的个人时间或知识产权（专利、代码、设计）获取报酬，是最踏实、最让我有安全感的赚钱方式。",
+            "与其花大量金钱和时间去混圈子、经营社交形象，我宁愿把精力投资在考取高含金量证书或精进手艺上。",
+            // 风口投机型 (10-14)
+            "看到新兴的市场概念（如早期Crypto、AI大模型），我通常是第一批掏钱下场试水的人，哪怕有亏损风险。",
+            "我极度厌恶赚“慢钱”。如果一个项目需要熬5年才能回本，即使最终胜率极高，我也大概率会放弃。",
+            "在投资或创业决策中，我愿意为了博取十倍以上的超额收益，而承担本金全部损失（归零）的风险。",
+            "我对信息差极度敏感，常常能从庞杂、碎片化的资讯中嗅到短期套利的机会，并要求自己以最快速度执行。",
+            "我深信财富跃迁本质上靠的是“康波周期”的贝塔收益和加杠杆，而不是靠按部就班积累死工资。",
+            // 稳健复利型 (15-19)
+            "面对一笔巨额意外之财，我的第一反应是如何将它妥善配置在低风险资产中生息，而不是拿去高风险创业或消费。",
+            "我极度厌恶本金的永久性损失。即使某个投资品预期收益翻倍，只要有20%的爆仓概率，我也会坚决远离。",
+            "我相信“时间是好公司的朋友”，更倾向于通过长期定投宽基指数（如ETF）或蓝筹股来获取复利平均收益。",
+            "做商业决策时，我会反复推演最坏的情况（底线思维），确保自己永远留有足够的安全边际 and 现金流。",
+            "我认为“复利”才是财富的终极密码，追求每年稳定且确定地增长8%-10%，远比偶尔一次翻倍更重要。",
+            // 个人IP赋能型 (20-24)
+            "我在社交媒体上分享观点或日常时，总能敏锐地察觉到什么样的文案、情绪或图片最能引发评论和转发。",
+            "我认为在当下的商业环境中，“拥有多少注意力”比“拥有多少传统实体资产”更具有极高的变现价值。",
+            "我能够毫无心理负担地在镜头前或公开场合展示自我，并擅长将其提炼、包装成具有商业价值的独特“人设”。",
+            "看到热搜事件，我的第一反应是拆解其背后的公众情绪与传播逻辑，并立刻思考如何借势输出自己的内容。",
+            "我极具共情力，能够精准切中目标受众的心理痛点或爽点，为他们提供情绪价值并转化为商业转化率。",
+            // 顶层架构型 (25-29)
+            "面对一个复杂的商业项目，我最感兴趣的是设计其底层的盈利模式和利益分发机制，而不是亲自去落地执行细节。",
+            "我习惯用“第一性原理”思考问题。遇到行业乱象时，总想透过现象去拆解底层的系统性Bug，并寻找重构方案。",
+            "我认为赚大钱的本质是成为“规则的制定者”或“平台的搭建者”，让无数的人在我的生态系统里运转并为我赚钱。",
+            "相比于具体的战术执行，我花更多的时间在搭建跨学科思维模型、分析宏观趋势和推演无边界的商业沙盘上。",
+            "在团队中，我通常扮演那个抽离出现实琐碎细节，在更高维度指出战略方向和重构商业闭环的角色。"
+        ];
+
+        const PROFILES = [
+            {
+                id: 0,
+                name: "资源整合型",
+                tagline: "游刃有余的“超级节点”，以极高的情商撬动跨界财富。",
+                logic: "在盖洛普优势中属于典型的【影响力】与【关系建立】双高人群。不追求单点产能，而是通过降低信息不对称，实现价值的交换与套利。",
+                advice: "成为行业中介、FA或社群操盘手。建立系统化的人脉CRM库，专注发现A的痛点和B的产能，通过撮合交易赚取佣金或股权。",
+                blindspot: "容易陷入“无效社交”的虚假繁荣；若缺乏自身硬实力的托底，一旦核心利益方越过你直接交易，将被迅速边缘化。",
+                color: "bg-blue-500"
+            },
+            {
+                id: 1,
+                name: "技术深耕型",
+                tagline: "不可替代的“手艺人”，凭借硬核壁垒构筑商业护城河。",
+                logic: "盖洛普优势中【执行力】与【专注】特质极强。对不确定性有防御心理，倾向通过掌控自身技能的确定性来获得安全感。",
+                advice: "践行“一万小时定律”。不要被短期风口诱惑，持续考取行业金字塔尖的资质，将个人时间单价拉到极致；后期可将专业知识产品化。",
+                blindspot: "极易陷入“闭门造车”的技术自嗨；商业敏感度低，不懂得运用杠杆，导致收入天花板受限于个人的物理时间上限。",
+                color: "bg-teal-500"
+            },
+            {
+                id: 2,
+                name: "风口投机型",
+                tagline: "嗜血前行的“丛林猎手”，用高风险敞口换取非对称收益。",
+                logic: "具备强烈的【理念】与【行动】天赋。属于典型的“风险寻求者”，对赔率极度敏感。擅长在市场非理性繁荣的左侧入局。",
+                advice: "建立高频、多维度的信息捕捉基站. 严格执行“凯利公式”进行仓位管理，用小资金去博弈高赔率事件，做周期的弄潮儿。",
+                blindspot: "“幸存者偏差”重灾区。过度自信极易导致在周期尾部加杠杆，一次黑天鹅事件便足以抹平所有历史盈利。",
+                color: "bg-rose-500"
+            },
+            {
+                id: 3,
+                name: "稳健复利型",
+                tagline: "穿越周期的“长期主义者”，以反人性的纪律和时间做朋友。",
+                logic: "盖洛普优势中【审慎】与【纪律】突出。表现为理性的“损失厌恶”，深刻理解均值回归与微小优势的复利威力。",
+                advice: "构建具有强健现金流的投资组合。在消费端保持极简，将结余资金源源不断地投入能够产生孳息的资产池，控制回撤是核心。",
+                blindspot: "过于保守可能导致错失时代性的β红利，在通货膨胀剧烈期，过度规避名义风险反而可能陷入实际购买力缩水的隐性风险。",
+                color: "bg-emerald-500"
+            },
+            {
+                id: 4,
+                name: "个人IP赋能型",
+                tagline: "操纵注意力的“磁场中心”，将个人魅力转化为真金白银。",
+                logic: "极强的【沟通】与【体谅】天赋。深谙“注意力经济学”，懂得将抽象的信任感具象化为个人品牌，实现高杠杆变现。",
+                advice: "找到极度垂直的细分赛道，输出带有强烈个人色彩的观点。重仓内容平台聚拢流量，再通过知识付费、带货或私域咨询进行收割。",
+                blindspot: "极易遭受流量反噬与情绪内耗。人设一旦崩塌，商业价值瞬间清零；同时严重依赖平台算法的施舍，缺乏抗脆弱性。",
+                color: "bg-purple-500"
+            },
+            {
+                id: 5,
+                name: "顶层架构型",
+                tagline: "降维打击的“造局者”，站在高地制定商业世界的运行规则。",
+                logic: "盖洛普四大领域中【战略思维】的极致体现。跳出零和博弈的战术泥潭，倾向于构建多边网络效应。赚的是生态系统的资本化溢价。",
+                advice: "寻找产业链条中效率最低的环节，通过设计新的利益分配机制重构行业。学会用股权杠杆招募前5种人为你打工，脱离具体执行。",
+                blindspot: "理想主义与现实执行的巨大鸿沟。如果缺乏强大的资金盘和极为强悍的执行团队支撑，极易沦为空洞的PPT忽悠。",
+                color: "bg-slate-800"
+            }
+        ];
+
+        // --- 应用状态 ---
+        
+        let appState = {
+            step: 'start', // 'start', 'test', 'loading', 'result'
+            currentQIndex: 0,
+            answers: Array(30).fill(null),
+            results: null
+        };
+
+        // --- 事件处理函数 ---
+        
+        function handleAnswer(score) {
+            appState.answers[appState.currentQIndex] = score;
+            
+            if (appState.currentQIndex < QUESTIONS.length - 1) {
+                setTimeout(() => {
+                    appState.currentQIndex++;
+                    render();
+                }, 200);
+            } else {
+                render();
+            }
+        }
+
+        function handlePrev() {
+            if (appState.currentQIndex > 0) {
+                appState.currentQIndex--;
+                render();
+            }
+        }
+
+        function calculateResult() {
+            appState.step = 'loading';
+            render();
+            
+            const scores = [0, 0, 0, 0, 0, 0];
+            
+            appState.answers.forEach((score, index) => {
+                const dimensionIndex = Math.floor(index / 5);
+                scores[dimensionIndex] += score;
+            });
+
+            const mappedResults = PROFILES.map((profile, idx) => ({
+                ...profile,
+                score: scores[idx],
+                percentage: Math.round((scores[idx] / 25) * 100)
+            }));
+
+            const sortedResults = [...mappedResults].sort((a, b) => b.score - a.score);
+
+            setTimeout(() => {
+                appState.results = {
+                    primary: sortedResults[0],
+                    secondary: sortedResults[1],
+                    allDimensions: mappedResults
+                };
+                appState.step = 'result';
+                render();
+            }, 1500);
+        }
+
+        function resetTest() {
+            appState.answers = Array(30).fill(null);
+            appState.currentQIndex = 0;
+            appState.results = null;
+            appState.step = 'start';
+            render();
+        }
+
+        function startTest() {
+            appState.step = 'test';
+            render();
+        }
+
+        // --- SVG Icons ---
+        
+        const icons = {
+            award: '<svg class="w-16 h-16 mx-auto mb-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>',
+            shieldCheck: '<svg class="w-5 h-5 text-purple-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            chevronRight: '<svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>',
+            chevronLeft: '<svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>',
+            sparkles: '<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>',
+            refreshCw: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>',
+            barChart2: '<svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>',
+            share: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C9.589 12.438 10 11.166 10 9.75c0-2.071-1.679-3.75-3.75-3.75S2.5 7.679 2.5 9.75s1.679 3.75 3.75 3.75c.464 0 .909-.088 1.313-.256m0 0a9 9 0 019.382 9.382m0 0H21m0 0a9 9 0 01-9.382-9.382m7.5-6.75c2.071 0 3.75 1.679 3.75 3.75s-1.679 3.75-3.75 3.75"></path></svg>',
+            barChartLarge: '<svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>',
+            refreshCwLarge: '<svg class="w-12 h-12 text-purple-500 animate-spin mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>'
+        };
+
+        // --- 渲染函数 ---
+        
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (appState.step === 'start') {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800">
+                        <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden">
+                            <div class="bg-slate-900 p-8 text-center text-white relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                                ${icons.award}
+                                <h1 class="text-3xl font-extrabold tracking-tight mb-2">命中财富局</h1>
+                                <p class="text-slate-300 font-medium tracking-widest text-sm">挖掘你的核心搞钱天赋</p>
+                            </div>
+                            
+                            <div class="p-8">
+                                <div class="space-y-4 text-sm text-slate-600 mb-8 leading-relaxed">
+                                    <p>财富的获取并非玄学，而是个人天赋优势与风险偏好在商业现实中的精准映射。</p>
+                                    <p class="flex items-start">
+                                        ${icons.shieldCheck}
+                                        <span>基于盖洛普优势理论 & 行为金融学模型研发。</span>
+                                    </p>
+                                    <p class="text-rose-500 font-medium bg-rose-50 p-3 rounded-lg">
+                                        ⚠️ 测试包含30个商业博弈场景，请基于第一直觉作答。不要粉饰自我，真实的痛点藏着最核心的壁垒。
+                                    </p>
+                                </div>
+                                
+                                <button 
+                                    onclick="startTest()"
+                                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-purple-500/30 transition-all flex justify-center items-center text-lg"
+                                >
+                                    开始测试 ${icons.chevronRight}
+                                </button>
+                                <p class="text-center text-slate-400 text-xs mt-4">已超过 4.3万+ 人参与测试</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (appState.step === 'test') {
+                const isLastQuestion = appState.currentQIndex === QUESTIONS.length - 1;
+                const progress = ((appState.currentQIndex) / QUESTIONS.length) * 100;
+
+                app.innerHTML = `
+                    <div class="min-h-screen bg-[#F8F9FA] flex flex-col items-center p-4 md:p-6 font-sans">
+                        <div class="max-w-md w-full bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col min-h-[85vh]">
+                            
+                            <div class="p-6 border-b border-slate-50">
+                                <div class="flex justify-between items-center mb-4 text-sm font-bold text-slate-400 tracking-wider">
+                                    <span>天赋自测</span>
+                                    <span class="text-purple-600 bg-purple-50 px-3 py-1 rounded-full">${appState.currentQIndex + 1} / ${QUESTIONS.length}</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div 
+                                        class="bg-purple-500 h-1.5 rounded-full transition-all duration-300 ease-out" 
+                                        style="width: ${progress}%"
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div class="px-6 py-8 flex-grow">
+                                <h2 class="text-xl md:text-2xl font-bold text-slate-800 leading-snug mb-8">
+                                    ${QUESTIONS[appState.currentQIndex]}
+                                </h2>
+
+                                <div class="space-y-3">
+                                    ${OPTIONS.map((opt, idx) => `
+                                        <button
+                                            onclick="handleAnswer(${opt.score})"
+                                            class="w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 font-medium ${
+                                                appState.answers[appState.currentQIndex] === opt.score 
+                                                    ? 'border-purple-500 bg-purple-50 text-purple-700 shadow-sm' 
+                                                    : 'border-slate-100 bg-white text-slate-600 hover:border-purple-200 hover:bg-slate-50'
+                                            }"
+                                        >
+                                            ${opt.text}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="p-6 pt-0 flex gap-4 mt-auto">
+                                <button 
+                                    onclick="handlePrev()"
+                                    ${appState.currentQIndex === 0 ? 'disabled' : ''}
+                                    class="flex-1 py-3.5 rounded-2xl font-semibold flex items-center justify-center transition-colors ${
+                                        appState.currentQIndex === 0 ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    }"
+                                >
+                                    ${icons.chevronLeft} 上一题
+                                </button>
+                                
+                                ${isLastQuestion ? `
+                                    <button 
+                                        onclick="calculateResult()"
+                                        ${appState.answers[appState.currentQIndex] === null ? 'disabled' : ''}
+                                        class="flex-1 py-3.5 rounded-2xl font-semibold flex items-center justify-center transition-all ${
+                                            appState.answers[appState.currentQIndex] === null 
+                                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                                                : 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                                        }"
+                                    >
+                                        生成报告 ${icons.sparkles}
+                                    </button>
+                                ` : `
+                                    <button 
+                                        onclick="handleAnswer(${appState.answers[appState.currentQIndex]})"
+                                        ${appState.answers[appState.currentQIndex] === null ? 'disabled' : ''}
+                                        class="flex-1 py-3.5 rounded-2xl font-semibold flex items-center justify-center transition-all ${
+                                            appState.answers[appState.currentQIndex] === null 
+                                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                                                : 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
+                                        }"
+                                    >
+                                        下一题 ${icons.chevronRight}
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (appState.step === 'loading') {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
+                        ${icons.refreshCwLarge}
+                        <h2 class="text-xl font-bold mb-2">正在解码您的财富矩阵...</h2>
+                        <p class="text-slate-400 text-sm">融合盖洛普与行为金融学数据</p>
+                    </div>
+                `;
+            } else if (appState.step === 'result' && appState.results) {
+                const { primary, secondary, allDimensions } = appState.results;
+
+                app.innerHTML = `
+                    <div class="min-h-screen bg-slate-100 py-8 px-4 font-sans flex justify-center">
+                        <div class="max-w-md w-full space-y-6">
+                            
+                            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+                                <div class="bg-slate-900 px-6 py-8 text-white relative">
+                                    <div class="absolute top-0 right-0 p-4 opacity-20">
+                                        ${icons.barChartLarge}
+                                    </div>
+                                    <p class="text-purple-300 font-bold tracking-widest text-xs mb-3">天赋能力鉴定报告</p>
+                                    <h2 class="text-sm font-medium text-slate-300 mb-1">主导搞钱形式</h2>
+                                    <h1 class="text-4xl font-extrabold mb-4">${primary.name}</h1>
+                                    <p class="text-base text-slate-200 leading-relaxed italic border-l-4 border-purple-500 pl-3">
+                                        "${primary.tagline}"
+                                    </p>
+                                </div>
+
+                                <div class="p-6 bg-[#FAFAFA] border-b border-slate-100">
+                                    <h3 class="text-slate-800 font-bold mb-6 flex items-center">
+                                        ${icons.barChart2}
+                                        各项天赋分值
+                                    </h3>
+                                    <div class="space-y-4">
+                                        ${allDimensions.map((dim) => `
+                                            <div class="flex items-center text-sm">
+                                                <span class="w-24 font-medium text-slate-600 truncate pr-2">${dim.name}</span>
+                                                <div class="flex-grow bg-slate-200 rounded-full h-3 overflow-hidden relative flex items-center">
+                                                    <div 
+                                                        class="h-full rounded-full ${dim.id === primary.id ? 'bg-purple-600' : 'bg-slate-400'}"
+                                                        style="width: ${dim.percentage}%"
+                                                    ></div>
+                                                </div>
+                                                <span class="w-12 text-right font-bold text-slate-700 ml-2">${dim.score}分</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <div class="p-6 space-y-6">
+                                    <div>
+                                        <h4 class="text-xs font-bold tracking-widest text-slate-400 mb-2 uppercase">辅助天赋</h4>
+                                        <div class="inline-block bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold border border-slate-200">
+                                            ${secondary.name} (${secondary.score}分)
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-xs font-bold tracking-widest text-slate-400 mb-2 uppercase">底层逻辑</h4>
+                                        <p class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl">
+                                            ${primary.logic}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-xs font-bold tracking-widest text-purple-500 mb-2 uppercase">搞钱建议（实操方向）</h4>
+                                        <p class="text-sm text-slate-700 leading-relaxed bg-purple-50 border border-purple-100 p-4 rounded-2xl">
+                                            ${primary.advice}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-xs font-bold tracking-widest text-rose-500 mb-2 uppercase">致命盲区</h4>
+                                        <p class="text-sm text-slate-700 leading-relaxed bg-rose-50 border border-rose-100 p-4 rounded-2xl">
+                                            ${primary.blindspot}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <button 
+                                    onclick="alert('已复制链接，快去小红书/朋友圈分享你的天赋雷达吧！')"
+                                    class="flex-1 bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-bold flex justify-center items-center shadow-lg transition-colors"
+                                >
+                                    ${icons.share} 邀请朋友测
+                                </button>
+                                <button 
+                                    onclick="resetTest()"
+                                    class="bg-white text-slate-600 py-4 px-6 rounded-2xl font-bold flex justify-center items-center shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors"
+                                >
+                                    ${icons.refreshCw}
+                                </button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 初始渲染
+        render();
+    </script>
+</body>
+</html>
